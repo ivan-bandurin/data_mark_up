@@ -1,6 +1,5 @@
 # python3.9
-# data_mark_up_script.py - предназначен для простой разметки данных с ККТ с делением на два класса
-# "Содержит персональные данные" - 1 и "Не содержит персональные данные" - 0
+# data_mark_up_script.py - предназначен для простой разметки данных с делением на два класса
 
 from tkinter import *
 import sys
@@ -12,13 +11,22 @@ l_1.pack(side=LEFT, pady=15)
 l = Label()
 l.pack(side=LEFT, pady=15)
 
-# Начало счетчика строк
-if int(sys.argv[1]) == 0:
-    x = int(sys.argv[1])
-else:
-    x = int(sys.argv[1]) + 1
-# Линия, выведенная на экран
+
 showed_line = []
+x = 0
+
+#устанавливает номер первой строки и выводит ее
+def set_counter():
+    global x
+    global showed_line
+    try:
+        x = int(counter_input.get())
+    except:
+        x = 0
+    
+    l_1.config(text = str(x))
+    showed_line = get_line(x)    
+    l.config(text = showed_line)
 
 # Функция get_line получает на вход номер строки файла и вовзращает ее в виде чистой декодированной строки
 def get_line(n):
@@ -30,17 +38,10 @@ def get_line(n):
                 break
             return line[:-3].decode('utf_8')
 
-# Функция обработки нажатия клавиши "Пробел"
-# При нажатии клавиши пробел на экран выводится первая строка обрабатываемого набора данных
-def bs(event):
-    global x
-    global showed_line
-    l_1.config(text = str(x))
-    showed_line = get_line(x)    
-    l.config(text = showed_line)
+
 
 # Функция обработки нажатия клавиши "Стрелка влево" 
-# При нажатии клавиши пробел на экран строка помечается как не содержащая персональных данных
+# При нажатии клавиши пробел на экран строка помечается как 0
 def bl(event):
     global x
     global showed_line
@@ -54,11 +55,10 @@ def bl(event):
     l.config(text = showed_line)
 
 # Функция обработки нажатия клавиши "Стрелка вправо" 
-# При нажатии клавиши пробел на экран строка помечается как содержащая персональных данных 
+# При нажатии клавиши пробел на экран строка помечается как 1
 def br(event):
     global x
     global showed_line
-    # showed_line = get_line(x)
     res = open('marked.csv', 'a')
     res.write(showed_line.replace(';',':') + ';' + "1" + '\n')
     res.close()    
@@ -67,23 +67,38 @@ def br(event):
     l_1.config(text = str(x))
     l.config(text = showed_line)
 
+
 # Функция вывода номера последней размеченной строки
 # При нажатии клавиши N выводится номер последней строки, которой присвоили отметку
 # После нажатия клавиши "Пробел" возращается необработанная строка
-def bn(event):
-    global x
-    l_1.config(text = 'Number of last marked string - ' + str(x-1))
-    l.config(text = get_line(x-1))
+def bn():
+    with open('marked.csv', 'r') as f:
+        n = 0
+        res = ''
+        for line in f:
+            n += 1
+            res = line
+    f.close()
+    l_1.config(text = 'Number of last marked string - ' + str(n-1))
+    l.config(text = line)
+    counter_input.insert(END, str(n))
+
+
+counter_input = Entry(root, width=5)
+counter_button = Button(root, text='set line', command=set_counter)
+last_marked = Button(root, text='get last marked string', command=bn)
+
+counter_button.place(x=20, y=20)
+counter_input.place(x=90, y=23)
+last_marked.place(x=20, y=50)
 
 root.bind('<Left>', bl)
 root.bind('<Right>', br)
-root.bind('<space>', bs)
-root.bind('n', bn)
 
-help_text = ('For start press "Space"\n' + 
-             'For marking up as data including personal information press "Right"\n' +
-             'For marking up as data NOT including personal information press "Left"\n' +
-             'For showing number of last marked string press "n"')
+
+help_text = ('For start press "set line"\n' + 
+             'For marking up as 1 press "Right"\n' +
+             'For marking up as 0 press "Left"\n')
 l_1.config(text = help_text)
 
 
